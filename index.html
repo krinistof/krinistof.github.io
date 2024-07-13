@@ -1,0 +1,2515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acronym Memorizer Game</title>
+    <style>body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #game-panel, #list-panel {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        #list-panel {
+            background-color: #f9f9f9;
+            border-left: 1px solid #ddd;
+        }
+        #game-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #acronym-display {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        #description-display {
+            font-style: italic;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #666;
+        }
+        #input-area {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        #user-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .error {
+            color: red;
+        }
+        #toggle-list {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #2196F3;
+        }
+        #import-export {
+            margin-top: 20px;
+        }
+        #import-export textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        #acronym-list div {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #score-display {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #4CAF50;
+        }</style>
+</head>
+<body>
+    <div class="container">
+        <div id="game-panel">
+            <div id="acronym-display"></div>
+            <div id="description-display"></div>
+            <div id="input-area">
+                <input type="text" id="user-input" placeholder="Type the full form...">
+                <div id="button-container">
+                    <button id="submit-btn">Submit</button>
+                    <button id="hint-btn">Hint</button>
+                </div>
+            </div>
+            <div id="result"></div>
+            <div id="score-display"></div>
+        </div>
+        <div id="list-panel">
+            <div id="import-export">
+                <textarea id="import-export-area" placeholder="Import/Export game data here..."></textarea>
+                <button id="import-btn">Import</button>
+                <button id="export-btn">Export</button>
+            </div>
+            <h2>Acronyms by Weakness</h2>
+            <div id="acronym-list"></div>
+        </div>
+    </div>
+    <button id="toggle-list">Toggle List</button>
+
+    <script>
+      const gameData = 
+[
+  {
+    "acronym": "NIDS",
+    "fullForm": "Network-based Intrusion Detection System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "VLSM",
+    "fullForm": "Variable-length Subnet Masking",
+    "description": "create subnets of different sizes within the same network",
+    "weakness": 100
+  },
+  {
+    "acronym": "CIS",
+    "fullForm": "Center for Internet Security",
+    "description": "nonprofit org focused on improving security",
+    "weakness": 100
+  },
+  {
+    "acronym": "IDS",
+    "fullForm": "Intrusion Detection System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SSL",
+    "fullForm": "Secure Sockets Layer",
+    "description": "establish an encrypted link between server and client",
+    "weakness": 100
+  },
+  {
+    "acronym": "RFI",
+    "fullForm": "Remote File Inclusion",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "WORM",
+    "fullForm": "Write Once Read Many",
+    "description": "data storage technology that allows info to be written once and prevents it from being erased or modified",
+    "weakness": 100
+  },
+  {
+    "acronym": "IRP",
+    "fullForm": "Incident Response Plan",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CVE",
+    "fullForm": "Common Vulnerabilities and Exposures",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "RPO",
+    "fullForm": "Recovery Point Objective",
+    "description": "maximum acceptable amount of data loss measured in time",
+    "weakness": 100
+  },
+  {
+    "acronym": "ALE",
+    "fullForm": "Annualized Loss Expectancy",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CPU",
+    "fullForm": "Central Processing Unit",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "HA",
+    "fullForm": "High Availability",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CMS",
+    "fullForm": "Content Management System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "OS",
+    "fullForm": "Operating System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "MTTF",
+    "fullForm": "Mean Time to Failure",
+    "description": "average time until the first failure",
+    "weakness": 100
+  },
+  {
+    "acronym": "ASLR",
+    "fullForm": "Address Space Layout Randomization",
+    "description": "security technique (randomly arrange the base of the executable, stack, heap, lib positions) to prevent or make more difficult to execute buffer overflows and return-to-libc attacks",
+    "weakness": 100
+  },
+  {
+    "acronym": "WAP",
+    "fullForm": "Wireless Access Point",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "RADIUS",
+    "fullForm": "Remote Authentication Dial-in User Service",
+    "description": "networking protocol that provides centralized AAA management for users who connect and use a network service",
+    "weakness": 100
+  },
+  {
+    "acronym": "SMTPS",
+    "fullForm": "Simple Mail Transfer Protocol Secure",
+    "description": "SMTP with SSL/TLS",
+    "weakness": 100
+  },
+  {
+    "acronym": "SRTP",
+    "fullForm": "Secure Real-time Transport Protocol",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "IDEA",
+    "fullForm": "International Data Encryption Algorithm",
+    "description": "symmetric encryption algorithm",
+    "weakness": 100
+  },
+  {
+    "acronym": "NAT",
+    "fullForm": "Network Address Translation",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "LAN",
+    "fullForm": "Local Area Network",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PFS",
+    "fullForm": "Perfect Forward Secrecy",
+    "description": "property of secure communication protocols in which past and future session keys are not compromised even if the private key of the server is compromised",
+    "weakness": 100
+  },
+  {
+    "acronym": "PTZ",
+    "fullForm": "Pan-Tilt-Zoom",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SNMP",
+    "fullForm": "Simple Network Management Protocol",
+    "description": "manage and monitor network devices",
+    "weakness": 100
+  },
+  {
+    "acronym": "PaaS",
+    "fullForm": "Platform as a Service",
+    "description": "provide a platform allowing customers to develop, run and manage applications without dealing with the underlying infrastructure",
+    "weakness": 100
+  },
+  {
+    "acronym": "ABAC",
+    "fullForm": "Attribute-based Access Control",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PKCS",
+    "fullForm": "Public Key Cryptography Standards",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SaaS",
+    "fullForm": "Software as a Service",
+    "description": "cloud based software",
+    "weakness": 100
+  },
+  {
+    "acronym": "OSI",
+    "fullForm": "Open Systems Interconnection",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PAP",
+    "fullForm": "Password Authentication Protocol",
+    "description": "user name and password are sent to the server in plaintext",
+    "weakness": 100
+  },
+  {
+    "acronym": "SOAP",
+    "fullForm": "Simple Object Access Protocol",
+    "description": "exchange structured info in web services",
+    "weakness": 100
+  },
+  {
+    "acronym": "UEFI",
+    "fullForm": "Unified Extensible Firmware Interface",
+    "description": "specification for SW that connects a computer's FW to its OS",
+    "weakness": 100
+  },
+  {
+    "acronym": "SED",
+    "fullForm": "Self-Encrypting Drives",
+    "description": "HW that automatically encrypt all data",
+    "weakness": 100
+  },
+  {
+    "acronym": "PBX",
+    "fullForm": "Private Branch Exchange",
+    "description": "private telephone network within a company",
+    "weakness": 100
+  },
+  {
+    "acronym": "PEAP",
+    "fullForm": "Protected Extensible Authentication Protocol",
+    "description": "encapsulate the EAP within an encrypted and authenticated TLS tunnel",
+    "weakness": 100
+  },
+  {
+    "acronym": "AD",
+    "fullForm": "Active Directory",
+    "description": "directory service for managing users, computers, resources, centralized resource management, authentication, authorization, enforcing security policies",
+    "weakness": 100
+  },
+  {
+    "acronym": "COOP",
+    "fullForm": "Continuity of Operations Planning",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CAPTCHA",
+    "fullForm": "Completely Automated Public Turing Test to Tell Computers and Humans Apart",
+    "description": "separate human users from bots",
+    "weakness": 100
+  },
+  {
+    "acronym": "PHI",
+    "fullForm": "Personal Health Information",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "RTP",
+    "fullForm": "Real-time Transport Protocol",
+    "description": "deliver audio and video over IP",
+    "weakness": 100
+  },
+  {
+    "acronym": "ECB",
+    "fullForm": "Electronic Code Book",
+    "description": "simple encryption mode for block ciphers",
+    "weakness": 100
+  },
+  {
+    "acronym": "UPS",
+    "fullForm": "Uninterruptible Power Supply",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "GRE",
+    "fullForm": "Generic Routing Encapsulation",
+    "description": "protocol for encapsulating packets in tunneling",
+    "weakness": 100
+  },
+  {
+    "acronym": "MD5",
+    "fullForm": "Message Digest 5",
+    "description": "hash function producing 128 bit values",
+    "weakness": 100
+  },
+  {
+    "acronym": "ROI",
+    "fullForm": "Return on Investment",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "QoS",
+    "fullForm": "Quality of Service",
+    "description": "manage network traffic and ensure the performance, reliability and prioritization of data flows",
+    "weakness": 100
+  },
+  {
+    "acronym": "PAM",
+    "fullForm": "Pluggable Authentication Modules",
+    "description": "shared libraries that enable the local admin to choose how applications authenticate users",
+    "weakness": 100
+  },
+  {
+    "acronym": "CSP",
+    "fullForm": "Cloud Service Provider",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "TCP",
+    "fullForm": "Transmission Control Protocol",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "ISA",
+    "fullForm": "Interconnection Security Agreement",
+    "description": "document specifying technical and security requirements for interconnected systems",
+    "weakness": 100
+  },
+  {
+    "acronym": "CSO",
+    "fullForm": "Chief Security Officer",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "RAS",
+    "fullForm": "Remote Access Server",
+    "description": "server that provides services to remotely connected users",
+    "weakness": 100
+  },
+  {
+    "acronym": "SDP",
+    "fullForm": "Service Delivery Platform",
+    "description": "common architecture for delivering and managing network-based services",
+    "weakness": 100
+  },
+  {
+    "acronym": "SDLM",
+    "fullForm": "Software Development Life-cycle Methodology",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "EFS",
+    "fullForm": "Encrypted File System",
+    "description": "windows feature",
+    "weakness": 100
+  },
+  {
+    "acronym": "NFC",
+    "fullForm": "Near-field Communication",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "OSPF",
+    "fullForm": "Open Shortest Path First",
+    "description": "routing protocol for IP networks",
+    "weakness": 100
+  },
+  {
+    "acronym": "WIDS",
+    "fullForm": "Wireless Intrusion Detection System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "AI",
+    "fullForm": "Artificial Intelligence",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PAM",
+    "fullForm": "Privileged Access Management",
+    "description": "security mechanisms for managing and controlling access to critical systems and sensitive information",
+    "weakness": 100
+  },
+  {
+    "acronym": "IoT",
+    "fullForm": "Internet of Things",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "HOTP",
+    "fullForm": "HMAC-based One-time Password",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "FTPS",
+    "fullForm": "Secured File Transfer Protocol",
+    "description": "FTP with SSL/TLS",
+    "weakness": 100
+  },
+  {
+    "acronym": "IV",
+    "fullForm": "Initialization Vector",
+    "description": "random value used to start encryption processes",
+    "weakness": 100
+  },
+  {
+    "acronym": "ESP",
+    "fullForm": "Encapsulating Security Payload",
+    "description": "protocol for encrypted communication in IPSec",
+    "weakness": 100
+  },
+  {
+    "acronym": "SMB",
+    "fullForm": "Server Message Block",
+    "description": "network file sharing protocol that allows apps to read and write files and request services from servers",
+    "weakness": 100
+  },
+  {
+    "acronym": "MSA",
+    "fullForm": "Measurement Systems Analysis",
+    "description": "evaluate the capability of a measurement system",
+    "weakness": 100
+  },
+  {
+    "acronym": "BASH",
+    "fullForm": "Bourne Again Shell",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PKI",
+    "fullForm": "Public Key Infrastructure",
+    "description": "manage digital certs and public key encryption",
+    "weakness": 100
+  },
+  {
+    "acronym": "BIOS",
+    "fullForm": "Basic Input/Output System",
+    "description": "firmware that initializes hardware during the boot",
+    "weakness": 100
+  },
+  {
+    "acronym": "HTTPS",
+    "fullForm": "Hypertext Transfer Protocol Secure",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "TAXII",
+    "fullForm": "Trusted Automated eXchange of Intelligence Information",
+    "description": "transport mechanism for sharing threat info",
+    "weakness": 100
+  },
+  {
+    "acronym": "XML",
+    "fullForm": "Extensible Markup Language",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "DAC",
+    "fullForm": "Discretionary Access Control",
+    "description": "the owner of the resource has the authority to control who can access it",
+    "weakness": 100
+  },
+  {
+    "acronym": "PDU",
+    "fullForm": "Power Distribution Unit",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "FDE",
+    "fullForm": "Full Disk Encryption",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PoC",
+    "fullForm": "Proof of Concept",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "DSA",
+    "fullForm": "Digital Signature Algorithm",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SSRF",
+    "fullForm": "Server-side Request Forgery",
+    "description": "induce a server-side app to make a HTTP request to an arbitrary domain",
+    "weakness": 100
+  },
+  {
+    "acronym": "SHA",
+    "fullForm": "Secure Hashing Algorithm",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "VDE",
+    "fullForm": "Virtual Desktop Environment",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "ISP",
+    "fullForm": "Internet Service Provider",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PAT",
+    "fullForm": "Port Address Translation",
+    "description": "form of NAT that maps multiple private IP addresses to a single public IP address with different ports",
+    "weakness": 100
+  },
+  {
+    "acronym": "RIPEMD",
+    "fullForm": "RACE Integrity Primitives Evaluation Message Digest",
+    "description": "some hash functions",
+    "weakness": 100
+  },
+  {
+    "acronym": "ML",
+    "fullForm": "Machine Learning",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SLA",
+    "fullForm": "Service-level Agreement",
+    "description": "contract between provider and customer that specifies the performance and quality metrics",
+    "weakness": 100
+  },
+  {
+    "acronym": "NFV",
+    "fullForm": "Network Function Virtualization",
+    "description": "virtualize routers, firewalls etc.",
+    "weakness": 100
+  },
+  {
+    "acronym": "IDF",
+    "fullForm": "Intermediate Distribution Frame",
+    "description": "cable rack",
+    "weakness": 100
+  },
+  {
+    "acronym": "SSD",
+    "fullForm": "Solid State Drive",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "ERP",
+    "fullForm": "Enterprise Resource Planning",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "MTU",
+    "fullForm": "Maximum Transmission Unit",
+    "description": "size of the largest packet that can be tramsitted over the network",
+    "weakness": 100
+  },
+  {
+    "acronym": "SOAR",
+    "fullForm": "Security Orchestration, Automation, Response",
+    "description": "technology to collect security threat data and respond to incidents",
+    "weakness": 100
+  },
+  {
+    "acronym": "JSON",
+    "fullForm": "JavaScript Object Notation",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "GPO",
+    "fullForm": "Group Policy Object",
+    "description": "config management in windows",
+    "weakness": 100
+  },
+  {
+    "acronym": "PPTP",
+    "fullForm": "Point-to-Point Tunneling Protocol",
+    "description": "method for implementing VPNs",
+    "weakness": 100
+  },
+  {
+    "acronym": "TTP",
+    "fullForm": "Tactics, Techniques, and Procedures",
+    "description": "describes the behavior of an actor (attack lifecycle, methods, attack vectors)",
+    "weakness": 100
+  },
+  {
+    "acronym": "TSIG",
+    "fullForm": "Transaction Signature",
+    "description": "secure DNS data during DNS transactions",
+    "weakness": 100
+  },
+  {
+    "acronym": "BGP",
+    "fullForm": "Border Gateway Protocol",
+    "description": "protocol for exchanging routing info between networks",
+    "weakness": 100
+  },
+  {
+    "acronym": "NTP",
+    "fullForm": "Network Time Protocol",
+    "description": "sync the clocks of computer over a network",
+    "weakness": 100
+  },
+  {
+    "acronym": "GPU",
+    "fullForm": "Graphics Processing Unit",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "IdP",
+    "fullForm": "Identity Provider",
+    "description": "creates and manages identity info (enables SSO for example)",
+    "weakness": 100
+  },
+  {
+    "acronym": "OTG",
+    "fullForm": "On-The-Go",
+    "description": "allows USB devices to act as a host, enabling other USB devices to be attached to them",
+    "weakness": 100
+  },
+  {
+    "acronym": "DLL",
+    "fullForm": "Dynamic-link Library",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CBT",
+    "fullForm": "Computer-based Training",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PEM",
+    "fullForm": "Privacy Enhanced Mail",
+    "description": "file format for storing and sending cryptographic keys and certs",
+    "weakness": 100
+  },
+  {
+    "acronym": "DNS",
+    "fullForm": "Domain Name System",
+    "description": "translate domain names to ip addresses",
+    "weakness": 100
+  },
+  {
+    "acronym": "HIDS",
+    "fullForm": "Host-based Intrusion Detection System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "S/MIME",
+    "fullForm": "Secure/Multipurpose Internet Mail Extensions",
+    "description": "provides a way to send and receive encrypted and sigitally signed messages",
+    "weakness": 100
+  },
+  {
+    "acronym": "SSH",
+    "fullForm": "Secure Shell",
+    "description": "network protocol for operating network services securely",
+    "weakness": 100
+  },
+  {
+    "acronym": "AES",
+    "fullForm": "Advanced Encryption Standard",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "DoS",
+    "fullForm": "Denial-of-Service",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "HDD",
+    "fullForm": "Hard Disk Drive",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "OID",
+    "fullForm": "Object Identifier",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "ESN",
+    "fullForm": "Electronic Serial Number",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "IKE",
+    "fullForm": "Internet Key Exchange",
+    "description": "protocol used to set up a secure, authenticated communication channel between two parties",
+    "weakness": 100
+  },
+  {
+    "acronym": "LDAP",
+    "fullForm": "Lightweight Directory Access Protocol",
+    "description": "directory service, store and manage users and resources, provide authentication",
+    "weakness": 100
+  },
+  {
+    "acronym": "CERT",
+    "fullForm": "Computer Emergency Response Team",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "POTS",
+    "fullForm": "Plain Old Telephone Service",
+    "description": "traditional voice service that runs over copper twisted-pair wires",
+    "weakness": 100
+  },
+  {
+    "acronym": "APT",
+    "fullForm": "Advanced Persistent Threat",
+    "description": "prolonged, targeted cyberattack",
+    "weakness": 100
+  },
+  {
+    "acronym": "FTP",
+    "fullForm": "File Transfer Protocol",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SFTP",
+    "fullForm": "SSH File Transfer Protocol",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "GPG",
+    "fullForm": "GNU Privacy Guard",
+    "description": "encrypt and sign data for secure communication",
+    "weakness": 100
+  },
+  {
+    "acronym": "HTML",
+    "fullForm": "Hypertext Markup Language",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "FACL",
+    "fullForm": "File System Access Control List",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "RAD",
+    "fullForm": "Rapid Application Development",
+    "description": "minimal planning, rapid prototyping",
+    "weakness": 100
+  },
+  {
+    "acronym": "AES256",
+    "fullForm": "Advanced Encryption Standards 256bit",
+    "description": "symmetric encryption",
+    "weakness": 100
+  },
+  {
+    "acronym": "GPS",
+    "fullForm": "Global Positioning System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SDN",
+    "fullForm": "Software-defined Networking",
+    "description": "use SW-based controllers or APIs to communicate with underlying HW",
+    "weakness": 100
+  },
+  {
+    "acronym": "OWASP",
+    "fullForm": "Open Web Application Security Project",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "AV",
+    "fullForm": "Antivirus",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "NAC",
+    "fullForm": "Network Access Control",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PPP",
+    "fullForm": "Point-to-Point Protocol",
+    "description": "data link layer communication protocol used to establish a direct connection between two nodes",
+    "weakness": 100
+  },
+  {
+    "acronym": "IP",
+    "fullForm": "Internet Protocol",
+    "description": "addressing and routing packets",
+    "weakness": 100
+  },
+  {
+    "acronym": "XOR",
+    "fullForm": "Exclusive OR",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "URI",
+    "fullForm": "Uniform Resource Identifier",
+    "description": "string of characters that identifies a resource",
+    "weakness": 100
+  },
+  {
+    "acronym": "SMTP",
+    "fullForm": "Simple Mail Transfer Protocol",
+    "description": "internet standard for email transmission",
+    "weakness": 100
+  },
+  {
+    "acronym": "UEM",
+    "fullForm": "Unified Endpoint Management",
+    "description": "single management interface for all endpoints",
+    "weakness": 100
+  },
+  {
+    "acronym": "P2P",
+    "fullForm": "Peer-to-Peer",
+    "description": "decentralized com model, each party can initiate a communication session and has the same capabilities",
+    "weakness": 100
+  },
+  {
+    "acronym": "USB",
+    "fullForm": "Universal Serial Bus",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SIEM",
+    "fullForm": "Security Information and Event Management",
+    "description": "provides real-time analysis of security alerts generated by apps and network HW",
+    "weakness": 100
+  },
+  {
+    "acronym": "RC4",
+    "fullForm": "Rivest Cipher version 4",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "RFC",
+    "fullForm": "Request for Comments",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SLE",
+    "fullForm": "Single Loss Expectancy",
+    "description": "expected monetary loss every time a risk occurs",
+    "weakness": 100
+  },
+  {
+    "acronym": "IMAP4",
+    "fullForm": "Internet Message Access Protocol v4",
+    "description": "protocol for accessing email on a remote server",
+    "weakness": 100
+  },
+  {
+    "acronym": "OSINT",
+    "fullForm": "Open-source Intelligence",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "ECDHE",
+    "fullForm": "Elliptic-curve Diffie-Hellman Ephemeral",
+    "description": "secure key exchange protocol using elliptic curves",
+    "weakness": 100
+  },
+  {
+    "acronym": "PBKDF2",
+    "fullForm": "Password-based Key Derivation Function 2",
+    "description": "key derivation function used to reduce the vulnerability of encrypted keys to brute force attacks",
+    "weakness": 100
+  },
+  {
+    "acronym": "SQLi",
+    "fullForm": "SQL Injection",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "NTFS",
+    "fullForm": "New Technology File System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PAC",
+    "fullForm": "Proxy Auto Configuration",
+    "description": "file that contains instructions on how web browsers and other user agents can automatically choose the appropriate proxy server",
+    "weakness": 100
+  },
+  {
+    "acronym": "DBA",
+    "fullForm": "Database Administrator",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "TLS",
+    "fullForm": "Transport Layer Security",
+    "description": "provide secure comm over a network",
+    "weakness": 100
+  },
+  {
+    "acronym": "DKIM",
+    "fullForm": "Domain Keys Identified Mail",
+    "description": "email authentication method using cryptographic signatures",
+    "weakness": 100
+  },
+  {
+    "acronym": "DNSSEC",
+    "fullForm": "Domain Name System Security Extensions",
+    "description": "adds security to dns through digital signatures",
+    "weakness": 100
+  },
+  {
+    "acronym": "GDPR",
+    "fullForm": "General Data Protection Regulation",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PGP",
+    "fullForm": "Pretty Good Privacy",
+    "description": "SW that provides encryption and digital signature mechanisms for data communication",
+    "weakness": 100
+  },
+  {
+    "acronym": "SMS",
+    "fullForm": "Short Message Service",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "IRC",
+    "fullForm": "Internet Relay Chat",
+    "description": "protocol for real-time text communication",
+    "weakness": 100
+  },
+  {
+    "acronym": "SAML",
+    "fullForm": "Security Assertions Markup Language",
+    "description": "standard for exchanging authentication and authorization data between parties",
+    "weakness": 100
+  },
+  {
+    "acronym": "CSU",
+    "fullForm": "Channel Service Unit",
+    "description": "device to connect a digital phone line to a router or other network device",
+    "weakness": 100
+  },
+  {
+    "acronym": "CRL",
+    "fullForm": "Certificate Revocation List",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "QA",
+    "fullForm": "Quality Assurance",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "BCP",
+    "fullForm": "Business Continuity Planning",
+    "description": "plan to ensure critical business functions continue during disruptions",
+    "weakness": 100
+  },
+  {
+    "acronym": "ICMP",
+    "fullForm": "Internet Control Message Protocol",
+    "description": "protocol for error messages and operational information in networks",
+    "weakness": 100
+  },
+  {
+    "acronym": "TGT",
+    "fullForm": "Ticket Granting Ticket",
+    "description": "encrypted id file with a limited validity period",
+    "weakness": 100
+  },
+  {
+    "acronym": "MOA",
+    "fullForm": "Memorandum of Agreement",
+    "description": "document outlining the terms of a mutual agreement between parties",
+    "weakness": 100
+  },
+  {
+    "acronym": "URL",
+    "fullForm": "Universal Resource Locator",
+    "description": "reference to a web resource that specifies its location and a mechanism for retrieving it",
+    "weakness": 100
+  },
+  {
+    "acronym": "MPLS",
+    "fullForm": "Multiprotocol Label Switching",
+    "description": "data-carrying technique for telecom networks",
+    "weakness": 100
+  },
+  {
+    "acronym": "CRC",
+    "fullForm": "Cyclic Redundancy Check",
+    "description": "error detecting mechanism",
+    "weakness": 100
+  },
+  {
+    "acronym": "CFB",
+    "fullForm": "Cipher Feedback",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CIO",
+    "fullForm": "Chief Information Officer",
+    "description": "responsible for IT strategy",
+    "weakness": 100
+  },
+  {
+    "acronym": "CAR",
+    "fullForm": "Corrective Action Report",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "MBR",
+    "fullForm": "Master Boot Record",
+    "description": "sector of a storage device containing boot info",
+    "weakness": 100
+  },
+  {
+    "acronym": "CSA",
+    "fullForm": "Cloud Security Alliance",
+    "description": "nonprofit org promoting cloud security best practices",
+    "weakness": 100
+  },
+  {
+    "acronym": "UTM",
+    "fullForm": "Unified Threat Management",
+    "description": "single security solution that provides multiple functions",
+    "weakness": 100
+  },
+  {
+    "acronym": "PII",
+    "fullForm": "Personally Identifiable Information",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "VPN",
+    "fullForm": "Virtual Private Network",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "ASP",
+    "fullForm": "Active Server Pages",
+    "description": "server-side scripting language for web dev",
+    "weakness": 100
+  },
+  {
+    "acronym": "MMS",
+    "fullForm": "Multimedia Message Service",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "NG-SWG",
+    "fullForm": "Next-generation Secure Web Gateway",
+    "description": "filter malware from user-initiated web traffic",
+    "weakness": 100
+  },
+  {
+    "acronym": "MDF",
+    "fullForm": "Main Distribution Frame",
+    "description": "central point for connecting network cables",
+    "weakness": 100
+  },
+  {
+    "acronym": "XaaS",
+    "fullForm": "Anything as a Service",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CIRT",
+    "fullForm": "Computer Incident Response Team",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "IR",
+    "fullForm": "Incident Response",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "MOU",
+    "fullForm": "Memorandum of Understanding",
+    "description": "non-binding document outlining the terms of an understanding",
+    "weakness": 100
+  },
+  {
+    "acronym": "ECDSA",
+    "fullForm": "Elliptic-curve Digital Signature Algorithm",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "LEAP",
+    "fullForm": "Lightweight Extensible Authentication Protocol",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "WIPS",
+    "fullForm": "Wireless Intrusion Prevention System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CSR",
+    "fullForm": "Certificate Signing Request",
+    "description": "request sent to CA to apply for a digital cert",
+    "weakness": 100
+  },
+  {
+    "acronym": "NAS",
+    "fullForm": "Network-attached Storage",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CBC",
+    "fullForm": "Cipher Block Chaining",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "DNAT",
+    "fullForm": "Destination Network Address Translation",
+    "description": "redirect incoming network traffic to a different ip address (for example forward traffic on port 80 of the public ip address to the web server's private ip address)",
+    "weakness": 100
+  },
+  {
+    "acronym": "RDP",
+    "fullForm": "Remote Desktop Protocol",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "AAA",
+    "fullForm": "Authentication, Authorization, and Accounting",
+    "description": "framework for controlling access to computer resources",
+    "weakness": 100
+  },
+  {
+    "acronym": "EOL",
+    "fullForm": "End of Life",
+    "description": "the point when a product is no longer supported or sold",
+    "weakness": 100
+  },
+  {
+    "acronym": "CN",
+    "fullForm": "Common Name",
+    "description": "field in digital certs (representing hostname or identity)",
+    "weakness": 100
+  },
+  {
+    "acronym": "HIPS",
+    "fullForm": "Host-based Intrusion Prevention System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "FIM",
+    "fullForm": "File Integrity Monitoring",
+    "description": "monitors files for changes that might indicate a security breach",
+    "weakness": 100
+  },
+  {
+    "acronym": "HVAC",
+    "fullForm": "Heating, Ventilation, Air Conditioning",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PUP",
+    "fullForm": "Potentially Unwanted Program",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "WAF",
+    "fullForm": "Web Application Firewall",
+    "description": "filter HTTP traffic from and to a web app",
+    "weakness": 100
+  },
+  {
+    "acronym": "OCSP",
+    "fullForm": "Online Certificate Status Protocol",
+    "description": "protocol to check the revocation status of certs",
+    "weakness": 100
+  },
+  {
+    "acronym": "DDoS",
+    "fullForm": "Distributed Denial-of-Service",
+    "description": "dos using multiple systems",
+    "weakness": 100
+  },
+  {
+    "acronym": "MAM",
+    "fullForm": "Mobile Application Management",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "MS-CHAP",
+    "fullForm": "Microsoft Challenge-Handshake Authentication Protocol",
+    "description": "protocol to authenticate a user or a computer",
+    "weakness": 100
+  },
+  {
+    "acronym": "VBA",
+    "fullForm": "Visual Basic for Applications",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SIM",
+    "fullForm": "Subscriber Identity Module",
+    "description": "store subscriber info in mobiles",
+    "weakness": 100
+  },
+  {
+    "acronym": "NIST",
+    "fullForm": "National Institute of Standards & Technology",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "OTG",
+    "fullForm": "On-The-Go",
+    "description": "allows mobile USB devices to act as a host (allowing other USB devices to be attached to them)",
+    "weakness": 100
+  },
+  {
+    "acronym": "UAT",
+    "fullForm": "User Acceptance Testing",
+    "description": "SW is tested in the real world by the intended audience",
+    "weakness": 100
+  },
+  {
+    "acronym": "SDLC",
+    "fullForm": "Software Development Life Cycle",
+    "description": "planning, creating, testing, deploying",
+    "weakness": 100
+  },
+  {
+    "acronym": "MFP",
+    "fullForm": "Multifunction Printer",
+    "description": "same as MFD",
+    "weakness": 100
+  },
+  {
+    "acronym": "ATT&CK",
+    "fullForm": "Adversarial Tactics, Techniques, and Common Knowledge",
+    "description": "framework for cyber adversary behaviour",
+    "weakness": 100
+  },
+  {
+    "acronym": "ICS",
+    "fullForm": "Industrial Control Systems",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SIP",
+    "fullForm": "Session Initiation Protocol",
+    "description": "initiate, manage, terminate real-time sessions including voice, video, messaging apps",
+    "weakness": 100
+  },
+  {
+    "acronym": "IaaS",
+    "fullForm": "Infrastructure as a Service",
+    "description": "virtualized resources (user has to manage the os and apps)",
+    "weakness": 100
+  },
+  {
+    "acronym": "PE",
+    "fullForm": "Portable Executable",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "3DES",
+    "fullForm": "Triple Data Encryption Standard",
+    "description": "symmetric encryption algorithm",
+    "weakness": 100
+  },
+  {
+    "acronym": "RTOS",
+    "fullForm": "Real-time Operating System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "BIA",
+    "fullForm": "Business Impact Analysis",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "OT",
+    "fullForm": "Operational Technology",
+    "description": "HW and SW that detects or causes changes through direct monitoring and control of physical devices",
+    "weakness": 100
+  },
+  {
+    "acronym": "CSIRT",
+    "fullForm": "Computer Security Incident Response Team",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CSRF",
+    "fullForm": "Cross-Site Request Forgery",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SAE",
+    "fullForm": "Simultaneous Authentication of Equals",
+    "description": "pw-based authentication and key exchange method in WPA3",
+    "weakness": 100
+  },
+  {
+    "acronym": "MDM",
+    "fullForm": "Mobile Device Management",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SPIM",
+    "fullForm": "Spam over Instant Messaging",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "GCM",
+    "fullForm": "Galois/Counter Mode",
+    "description": "encryption mode providing confidentiality and integrity",
+    "weakness": 100
+  },
+  {
+    "acronym": "RA",
+    "fullForm": "Registration Authority",
+    "description": "verifies user requests for a digital certificate and tells the CA to issue it",
+    "weakness": 100
+  },
+  {
+    "acronym": "DER",
+    "fullForm": "Distinguished Encoding Rules",
+    "description": "encoding rules for data structures in cryptography",
+    "weakness": 100
+  },
+  {
+    "acronym": "WPA",
+    "fullForm": "WiFi Protected Access",
+    "description": "protocol to create secure wifi networks",
+    "weakness": 100
+  },
+  {
+    "acronym": "IPS",
+    "fullForm": "Intrusion Prevention System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "VPC",
+    "fullForm": "Virtual Private Cloud",
+    "description": "private cloud within a public cloud",
+    "weakness": 100
+  },
+  {
+    "acronym": "ISO",
+    "fullForm": "International Organization for Standardization",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "API",
+    "fullForm": "Application Programming Interface",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CP",
+    "fullForm": "Contingency Planning",
+    "description": "plan for emergencies",
+    "weakness": 100
+  },
+  {
+    "acronym": "CCMP",
+    "fullForm": "Counter-Mode/CBC-MAC Protocol",
+    "description": "encryption protocol used in wifi",
+    "weakness": 100
+  },
+  {
+    "acronym": "DES",
+    "fullForm": "Data Encryption Standard",
+    "description": "symmetric encryption algorithm",
+    "weakness": 100
+  },
+  {
+    "acronym": "SPF",
+    "fullForm": "Sender Policy Framework",
+    "description": "email authentication method to detect forging sender addresses during email delivery",
+    "weakness": 100
+  },
+  {
+    "acronym": "BYOD",
+    "fullForm": "Bring Your Own Device",
+    "description": "allow employees to use their personal device for work",
+    "weakness": 100
+  },
+  {
+    "acronym": "NOC",
+    "fullForm": "Network Operations Center",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "AH",
+    "fullForm": "Authentication Header",
+    "description": "protocol used for authenticating the origin of data in IPsec",
+    "weakness": 100
+  },
+  {
+    "acronym": "AIS",
+    "fullForm": "Automated Indicator Sharing",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "NIPS",
+    "fullForm": "Network-based Intrusion Prevention System",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SCADA",
+    "fullForm": "Supervisory Control and Data Acquisition",
+    "description": "systems used for controlling and monitoring industrial processes",
+    "weakness": 100
+  },
+  {
+    "acronym": "XSS",
+    "fullForm": "Cross-site Scripting",
+    "description": "inject malicious scripts into the content of trusted websites",
+    "weakness": 100
+  },
+  {
+    "acronym": "MSP",
+    "fullForm": "Managed Service Provider",
+    "description": "company remotely managing a customer's IT infra",
+    "weakness": 100
+  },
+  {
+    "acronym": "FPGA",
+    "fullForm": "Field Programmable Gate Array",
+    "description": "reconfigurable IC",
+    "weakness": 100
+  },
+  {
+    "acronym": "ARP",
+    "fullForm": "Address Resolution Protocol",
+    "description": "resolves IP addresses to MAC addresses",
+    "weakness": 100
+  },
+  {
+    "acronym": "TKIP",
+    "fullForm": "Temporal Key Integrity Protocol",
+    "description": "security protocol used in 802.11 wireless standard",
+    "weakness": 100
+  },
+  {
+    "acronym": "IAM",
+    "fullForm": "Identity and Access Management",
+    "description": "framework for managing digital identities and access",
+    "weakness": 100
+  },
+  {
+    "acronym": "VLAN",
+    "fullForm": "Virtual Local Area Network",
+    "description": "logical group of network devices",
+    "weakness": 100
+  },
+  {
+    "acronym": "EAP",
+    "fullForm": "Extensible Authentication Protocol",
+    "description": "framework for network access authentication",
+    "weakness": 100
+  },
+  {
+    "acronym": "IM",
+    "fullForm": "Instant Messaging",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "COPE",
+    "fullForm": "Corporate-owned Personally Enabled",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "ISSO",
+    "fullForm": "Information Systems Security Officer",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SSID",
+    "fullForm": "Service Set Identifier",
+    "description": "32 chars, name of wifi network",
+    "weakness": 100
+  },
+  {
+    "acronym": "TACACS+",
+    "fullForm": "Terminal Access Controller Access Control System",
+    "description": "protocol used for remote authentication",
+    "weakness": 100
+  },
+  {
+    "acronym": "VoIP",
+    "fullForm": "Voice over IP",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "FRR",
+    "fullForm": "False Rejection Rate",
+    "description": "frequency of valid inputs being incorrectly rejected",
+    "weakness": 100
+  },
+  {
+    "acronym": "BPDU",
+    "fullForm": "Bridge Protocol Data Unit",
+    "description": "used for spanning tree protocol to prevent network loops",
+    "weakness": 100
+  },
+  {
+    "acronym": "CASB",
+    "fullForm": "Cloud Access Security Broker",
+    "description": "enforces security policies between cloud service users and providers",
+    "weakness": 100
+  },
+  {
+    "acronym": "UEBA",
+    "fullForm": "User and Entity Behavior Analytics",
+    "description": "process for detecting insider threats, targeted attacks, financial fraud",
+    "weakness": 100
+  },
+  {
+    "acronym": "SDK",
+    "fullForm": "Software Development Kit",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "WPS",
+    "fullForm": "WiFi Protected Setup",
+    "description": "simplify the process of connecting devices to a secure wifi network",
+    "weakness": 100
+  },
+  {
+    "acronym": "SCEP",
+    "fullForm": "Simple Certificate Enrollment Protocol",
+    "description": "protocol for requesting and issuing digital certs",
+    "weakness": 100
+  },
+  {
+    "acronym": "SAN",
+    "fullForm": "Storage Area Network",
+    "description": "high-speed network that provides access to block-level storage",
+    "weakness": 100
+  },
+  {
+    "acronym": "NTPSec",
+    "fullForm": "Network Time Protocol Secure",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "ACL",
+    "fullForm": "Access Control List",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "ITCP",
+    "fullForm": "IT Contingency Plan",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "CYOD",
+    "fullForm": "Choose Your Own Device",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "XSRF",
+    "fullForm": "Cross-site Request Forgery",
+    "description": "trick a web browser into performing an unwanted action on a trusted site (where the user is authenticated)",
+    "weakness": 100
+  },
+  {
+    "acronym": "SWG",
+    "fullForm": "Secure Web Gateway",
+    "description": "filters malware from user-initiated web traffic",
+    "weakness": 100
+  },
+  {
+    "acronym": "SDV",
+    "fullForm": "Software-defined Visibility",
+    "description": "abstracts and centralizes the management of network traffic monitoring and analysis",
+    "weakness": 100
+  },
+  {
+    "acronym": "ISFW",
+    "fullForm": "Internal Segmentation Firewall",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "BSSID",
+    "fullForm": "Basic Service Set Identifier",
+    "description": "ID for wifi APs",
+    "weakness": 100
+  },
+  {
+    "acronym": "DLP",
+    "fullForm": "Data Loss Prevention",
+    "description": "prevent data breaches and exfiltration",
+    "weakness": 100
+  },
+  {
+    "acronym": "ECC",
+    "fullForm": "Elliptic-curve Cryptography",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "DMARC",
+    "fullForm": "Domain Message Authentication Reporting and Conformance",
+    "description": "email authentication policy and reporting protocol",
+    "weakness": 100
+  },
+  {
+    "acronym": "MFA",
+    "fullForm": "Multifactor Authentication",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PED",
+    "fullForm": "Portable Electronic Device",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "AUP",
+    "fullForm": "Acceptable Use Policy",
+    "description": "rules for using org resources",
+    "weakness": 100
+  },
+  {
+    "acronym": "PIV",
+    "fullForm": "Personal Identity Verification",
+    "description": "standard for smart cards",
+    "weakness": 100
+  },
+  {
+    "acronym": "KDC",
+    "fullForm": "Key Distribution Center",
+    "description": "issues and manages cryptographic keys in a network",
+    "weakness": 100
+  },
+  {
+    "acronym": "MAN",
+    "fullForm": "Metropolitan Area Network",
+    "description": "network covering a city or large campus",
+    "weakness": 100
+  },
+  {
+    "acronym": "RSA",
+    "fullForm": "Rivest, Shamir, & Adleman",
+    "description": "asymmetric encryption",
+    "weakness": 100
+  },
+  {
+    "acronym": "ARO",
+    "fullForm": "Annualized Rate of Occurrence",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "VM",
+    "fullForm": "Virtual Machine",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SOC",
+    "fullForm": "Security Operations Center",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "DPO",
+    "fullForm": "Data Protection Officer",
+    "description": "ensures the org complies with data protection laws",
+    "weakness": 100
+  },
+  {
+    "acronym": "POP",
+    "fullForm": "Post Office Protocol",
+    "description": "protocol used by local email clients to retrieve emails from a remote server",
+    "weakness": 100
+  },
+  {
+    "acronym": "VTC",
+    "fullForm": "Video Teleconferencing",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "SEH",
+    "fullForm": "Structured Exception Handling",
+    "description": "windows only",
+    "weakness": 100
+  },
+  {
+    "acronym": "MFD",
+    "fullForm": "Multifunction Device",
+    "description": "print, copy, scan, fax",
+    "weakness": 100
+  },
+  {
+    "acronym": "TOTP",
+    "fullForm": "Time-based One Time Password",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "EOS",
+    "fullForm": "End of Service",
+    "description": "the point when a product no longer receives support",
+    "weakness": 100
+  },
+  {
+    "acronym": "SCAP",
+    "fullForm": "Security Content Automation Protocol",
+    "description": "standards for automating vulnerability management",
+    "weakness": 100
+  },
+  {
+    "acronym": "DSS",
+    "fullForm": "Data Security Standard",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "PCI",
+    "fullForm": "Payment Card Industry",
+    "description": "",
+    "weakness": 100
+  },
+  {
+    "acronym": "RAID",
+    "fullForm": "Redundant Array of Independent Disks",
+    "description": "",
+    "weakness": 95.5
+  },
+  {
+    "acronym": "PSK",
+    "fullForm": "Preshared Key",
+    "description": "",
+    "weakness": 95
+  },
+  {
+    "acronym": "VDI",
+    "fullForm": "Virtual Desktop Infrastructure",
+    "description": "",
+    "weakness": 93.3
+  },
+  {
+    "acronym": "STP",
+    "fullForm": "Shielded Twisted Pair",
+    "description": "",
+    "weakness": 92
+  },
+  {
+    "acronym": "NTLM",
+    "fullForm": "New Technology LAN Manager",
+    "description": "microsoft security protocols intended to provide authentication, integrity and confidentiality to users",
+    "weakness": 90.8
+  },
+  {
+    "acronym": "SSO",
+    "fullForm": "Single Sign-on",
+    "description": "auth process that allows a user to access multiple apps with one set of login creds",
+    "weakness": 90.7
+  },
+  {
+    "acronym": "IoC",
+    "fullForm": "Indicators of Compromise",
+    "description": "",
+    "weakness": 90.4
+  },
+  {
+    "acronym": "MSSP",
+    "fullForm": "Managed Security Service Provider",
+    "description": "same as MSP but focusing on security devices and systems",
+    "weakness": 90.3
+  },
+  {
+    "acronym": "TPM",
+    "fullForm": "Trusted Platform Module",
+    "description": "crypto processor that is designed to carry out crypto operations",
+    "weakness": 90
+  },
+  {
+    "acronym": "WEP",
+    "fullForm": "Wired Equivalent Privacy",
+    "description": "",
+    "weakness": 90
+  },
+  {
+    "acronym": "IEEE",
+    "fullForm": "Institute of Electrical and Electronics Engineers",
+    "description": "",
+    "weakness": 89.7
+  },
+  {
+    "acronym": "CTM",
+    "fullForm": "Counter-Mode",
+    "description": "",
+    "weakness": 88.3
+  },
+  {
+    "acronym": "RCS",
+    "fullForm": "Rich Communication Services",
+    "description": "communication protocol between mobile phone carriers and between phone and carrier",
+    "weakness": 87.2
+  },
+  {
+    "acronym": "STIX",
+    "fullForm": "Structured Threat Information eXpression",
+    "description": "standard language for representing threat info",
+    "weakness": 87
+  },
+  {
+    "acronym": "OVAL",
+    "fullForm": "Open Vulnerability and Assessment Language",
+    "description": "",
+    "weakness": 86.7
+  },
+  {
+    "acronym": "CHAP",
+    "fullForm": "Challenge-Handshake Authentication Protocol",
+    "description": "",
+    "weakness": 86.7
+  },
+  {
+    "acronym": "HSMaaS",
+    "fullForm": "Hardware Security Module as a Service",
+    "description": "HSM as a cloud service",
+    "weakness": 84.3
+  },
+  {
+    "acronym": "CVSS",
+    "fullForm": "Common Vulnerability Scoring System",
+    "description": "",
+    "weakness": 81.1
+  },
+  {
+    "acronym": "HMAC",
+    "fullForm": "Hash-based Message Authentication Code",
+    "description": "integrity check algorithm using a hash function and secret key",
+    "weakness": 81.1
+  },
+  {
+    "acronym": "DSL",
+    "fullForm": "Digital Subscriber Line",
+    "description": "high-speed internet access over telephone lines",
+    "weakness": 80.9
+  },
+  {
+    "acronym": "UDP",
+    "fullForm": "User Datagram Protocol",
+    "description": "comm protocol for low-latency and loss-tolerating connections",
+    "weakness": 80
+  },
+  {
+    "acronym": "UTP",
+    "fullForm": "Unshielded Twisted Pair",
+    "description": "",
+    "weakness": 80
+  },
+  {
+    "acronym": "L2TP",
+    "fullForm": "Layer 2 Tunneling Protocol",
+    "description": "protocol for VPNs to tunnel data over networks",
+    "weakness": 73.8
+  },
+  {
+    "acronym": "DHE",
+    "fullForm": "Diffie-Hellman Ephemeral",
+    "description": "key exchange protocol with temporary keys, the keys generated for the exchange are ephemeral (they are temporary and used only for a single session)",
+    "weakness": 73.3
+  },
+  {
+    "acronym": "CA",
+    "fullForm": "Certificate Authority",
+    "description": "entity that issues digital certificates",
+    "weakness": 73.3
+  },
+  {
+    "acronym": "DEP",
+    "fullForm": "Data Execution Prevention",
+    "description": "security feature that prevents code execution from non-executable memory regions",
+    "weakness": 72.8
+  },
+  {
+    "acronym": "MaaS",
+    "fullForm": "Monitoring as a Service",
+    "description": "",
+    "weakness": 72.2
+  },
+  {
+    "acronym": "RTO",
+    "fullForm": "Recovery Time Objective",
+    "description": "maximum acceptable amount of time to restore a system",
+    "weakness": 68.7
+  },
+  {
+    "acronym": "MTTR",
+    "fullForm": "Mean Time to Repair",
+    "description": "",
+    "weakness": 68.4
+  },
+  {
+    "acronym": "CTO",
+    "fullForm": "Chief Technology Officer",
+    "description": "responsible for tech and R&D",
+    "weakness": 68.3
+  },
+  {
+    "acronym": "EDR",
+    "fullForm": "Endpoint Detection and Response",
+    "description": "security solution for monitoring and responding to threats on endpoints",
+    "weakness": 67.7
+  },
+  {
+    "acronym": "WLAN",
+    "fullForm": "Wireless Local Area Network",
+    "description": "",
+    "weakness": 67.4
+  },
+  {
+    "acronym": "SoC",
+    "fullForm": "System on Chip",
+    "description": "",
+    "weakness": 65.7
+  },
+  {
+    "acronym": "HTTP",
+    "fullForm": "Hypertext Transfer Protocol",
+    "description": "protocol for transferring webpages",
+    "weakness": 64.4
+  },
+  {
+    "acronym": "EIP",
+    "fullForm": "Extended Instruction Pointer",
+    "description": "cpu register pointing to the next instruction to execute",
+    "weakness": 64.3
+  },
+  {
+    "acronym": "P12",
+    "fullForm": "PKCS #12",
+    "description": "standard for storing multiple cryptographic objects in a single file",
+    "weakness": 64.2
+  },
+  {
+    "acronym": "CI/CD",
+    "fullForm": "Continuous Integration/Continuous Delivery",
+    "description": "",
+    "weakness": 62.9
+  },
+  {
+    "acronym": "NDA",
+    "fullForm": "Non-disclosure Agreement",
+    "description": "",
+    "weakness": 61.7
+  },
+  {
+    "acronym": "PCAP",
+    "fullForm": "Packet Capture",
+    "description": "",
+    "weakness": 60
+  },
+  {
+    "acronym": "MAC",
+    "fullForm": "Media Access Control",
+    "description": "id assigned to network interfaces",
+    "weakness": 60
+  },
+  {
+    "acronym": "CCTV",
+    "fullForm": "Closed-Circuit Television",
+    "description": "video surveillance",
+    "weakness": 60
+  },
+  {
+    "acronym": "MTBF",
+    "fullForm": "Mean Time Between Failures",
+    "description": "",
+    "weakness": 60
+  },
+  {
+    "acronym": "RAT",
+    "fullForm": "Remote Access Trojan",
+    "description": "",
+    "weakness": 60
+  },
+  {
+    "acronym": "BPA",
+    "fullForm": "Business Partnership Agreement",
+    "description": "formal agreement between business parties",
+    "weakness": 60
+  },
+  {
+    "acronym": "DHCP",
+    "fullForm": "Dynamic Host Configuration Protocol",
+    "description": "assigns ips to devices on a network",
+    "weakness": 60
+  },
+  {
+    "acronym": "RAM",
+    "fullForm": "Random Access Memory",
+    "description": "",
+    "weakness": 60
+  },
+  {
+    "acronym": "NIC",
+    "fullForm": "Network Interface Card",
+    "description": "HW that connect a computer to a network",
+    "weakness": 60
+  },
+  {
+    "acronym": "KEK",
+    "fullForm": "Key Encryption Key",
+    "description": "",
+    "weakness": 60
+  },
+  {
+    "acronym": "HSM",
+    "fullForm": "Hardware Security Module",
+    "description": "offload crypto operations, generate (TRNG) and store securely keys, secure boot etc.",
+    "weakness": 60
+  },
+  {
+    "acronym": "SQL",
+    "fullForm": "Structured Query Language",
+    "description": "",
+    "weakness": 60
+  },
+  {
+    "acronym": "IPSec",
+    "fullForm": "Internet Protocol Security",
+    "description": "",
+    "weakness": 60
+  },
+  {
+    "acronym": "AP",
+    "fullForm": "Access Point",
+    "description": "",
+    "weakness": 60
+  },
+  {
+    "acronym": "PIN",
+    "fullForm": "Personal Identification Number",
+    "description": "",
+    "weakness": 60
+  },
+  {
+    "acronym": "NGFW",
+    "fullForm": "Next-generation Firewall",
+    "description": "built-in IDS/IPS, application awareness etc.",
+    "weakness": 60
+  },
+  {
+    "acronym": "RFID",
+    "fullForm": "Radio Frequency Identification",
+    "description": "",
+    "weakness": 60
+  },
+  {
+    "acronym": "SOX",
+    "fullForm": "Sarbanes Oxley Act",
+    "description": "US law to improve corporate governance and accountability",
+    "weakness": 59.50000000000001
+  },
+  {
+    "acronym": "DRP",
+    "fullForm": "Disaster Recovery Plan",
+    "description": "",
+    "weakness": 55.6
+  },
+  {
+    "acronym": "CMDB",
+    "fullForm": "Configuration Management Database",
+    "description": "",
+    "weakness": 53.800000000000004
+  },
+  {
+    "acronym": "RTBH",
+    "fullForm": "Remotely Triggered Black Hole",
+    "description": "mitigate the effects of DDoS by discarding network traffic",
+    "weakness": 52.6
+  },
+  {
+    "acronym": "ESSID",
+    "fullForm": "Extended Service Set Identifier",
+    "description": "name of a wifi network",
+    "weakness": 50.7
+  },
+  {
+    "acronym": "TCP/IP",
+    "fullForm": "Transmission Control Protocol/Internet Protocol",
+    "description": "comm protocols to connect hosts on the net",
+    "weakness": 38.4
+  },
+  {
+    "acronym": "OTA",
+    "fullForm": "Over-The-Air",
+    "description": "",
+    "weakness": 33.4
+  }
+]
+        ;
+
+        let currentAcronym;
+        let score = 0;
+        let hintsUsed = 1;
+
+        const acronymDisplay = document.getElementById('acronym-display');
+        const descriptionDisplay = document.getElementById('description-display');
+        const userInput = document.getElementById('user-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const result = document.getElementById('result');
+        const scoreDisplay = document.getElementById('score-display');
+        const acronymList = document.getElementById('acronym-list');
+        const toggleListBtn = document.getElementById('toggle-list');
+        const listPanel = document.getElementById('list-panel');
+        const gamePanel = document.getElementById('game-panel');
+        const importExportArea = document.getElementById('import-export-area');
+        const importBtn = document.getElementById('import-btn');
+        const exportBtn = document.getElementById('export-btn');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function getNextAcronym() {
+            shuffleArray(gameData);
+            return gameData[0];
+        }
+
+        function updateAcronymList() {
+            gameData.sort((a, b) => b.weakness - a.weakness);
+            acronymList.innerHTML = gameData.map(item => `
+                <div>
+                    <strong>${item.acronym}</strong> (Weakness: ${item.weakness})
+                    <br>${item.fullForm}
+                    ${item.description ? `<br><em>${item.description}</em>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function startNewRound() {
+            currentAcronym = getNextAcronym();
+            acronymDisplay.textContent = currentAcronym.acronym;
+            descriptionDisplay.textContent = currentAcronym.description || 'No description available';
+            userInput.value = '';
+            result.innerHTML = '';
+            hintsUsed = 1;
+            updateAcronymList();
+        }
+
+        function calculateScore(input, target) {
+            const editDistance = levenshteinDistance(input.toLowerCase(), target.toLowerCase());
+            const accuracy = Math.max(0, 1 - editDistance / target.length);
+            const baseScore = 200/hintsUsed;
+            return Math.round(baseScore * accuracy * (1 + currentAcronym.weakness / 100));
+        }
+
+        function levenshteinDistance(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+
+            const matrix = [];
+
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+
+            return matrix[b.length][a.length];
+        }
+
+        function checkAnswer() {
+            const userAnswer = userInput.value.trim().replace("-", " ");
+            const correctAnswer = currentAcronym.fullForm.replace("-", " ");
+            const newScore = calculateScore(userAnswer, correctAnswer);
+            score += newScore;
+
+            const words = correctAnswer.split(' ');
+            const userWords = userAnswer.split(' ');
+
+            let resultHTML = '';
+            for (let i = 0; i < words.length; i++) {
+                if (i < userWords.length && userWords[i].toLowerCase() === words[i].toLowerCase()) {
+                    resultHTML += words[i] + ' ';
+                } else {
+                    resultHTML += `<span class="error">${words[i]}</span> `;
+                }
+            }
+
+            result.innerHTML = `
+                Correct answer: ${resultHTML}<br>
+                Points earned: ${newScore}<br>
+            `;
+
+            currentAcronym.weakness = Math.max(0, currentAcronym.weakness - newScore / 10);
+            scoreDisplay.textContent = `Total Score: ${score}`;
+
+            setTimeout(startNewRound, 3000);
+        }
+
+        function provideHint() {
+            hintsUsed++;
+            let spacers = "";
+            let curr = currentAcronym.fullForm;
+            let word_start = 0;
+            let words = [];
+            for (let i = 0; i < curr.length; i++) {
+                let c = curr[i]
+                if (" -/".includes(c)) {
+                    spacers += c;
+                    words.push(curr.substring(word_start, i));
+                    word_start = i+1;
+                }
+            }
+            words.push(curr.substring(word_start, curr.length))
+            acronymDisplay.textContent = "";
+            const hintWords = words.map(word => word.substring(0, hintsUsed) + '_'.repeat(Math.max(0, word.length - hintsUsed)));
+            for(let i = 0; i < spacers.length; i++) {
+                acronymDisplay.textContent += hintWords[i] + spacers[i];
+            }
+            acronymDisplay.textContent += hintWords[spacers.length];
+        }
+
+        submitBtn.addEventListener('click', checkAnswer);
+        hintBtn.addEventListener('click', provideHint);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        toggleListBtn.addEventListener('click', () => {
+            listPanel.style.display = listPanel.style.display === 'none' ? 'block' : 'none';
+            gamePanel.style.flex = listPanel.style.display === 'none' ? '1' : '1';
+        });
+
+        importBtn.addEventListener('click', () => {
+            try {
+                const importedData = JSON.parse(importExportArea.value);
+                if (Array.isArray(importedData)) {
+                    gameData.length = 0;
+                    gameData.push(...importedData);
+                    updateAcronymList();
+                    alert('Data imported successfully!');
+                } else {
+                    throw new Error('Invalid data format');
+                }
+            } catch (error) {
+                alert('Error importing data. Please check the format.');
+            }
+        });
+
+        exportBtn.addEventListener('click', () => {
+            importExportArea.value = JSON.stringify(gameData, null, 2);
+        });
+
+        startNewRound();
+    </script>
+</body>
+</html>
